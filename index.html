@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>APPLE OF FORTUNE</title>
+<style>
+*{box-sizing:border-box}
+:root{--glass:rgba(0,48,39,.58);--line:rgba(128,239,203,.22);--mint:#a8f2d1}
+html{min-height:100%;background:#001a18}
+body{
+  margin:0;
+  min-height:100vh;
+  padding:14px 10px calc(24px + env(safe-area-inset-bottom));
+  color:#fff;
+  font-family:Arial,Tahoma,sans-serif;
+  overflow-x:hidden;
+  /* صورة الخلفية الأصلية للغابة بتثبيت كامل وتغطية متناسقة */
+  background: 
+    linear-gradient(rgba(0, 15, 12, 0.4), rgba(0, 15, 12, 0.65)),
+    url('https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=800&q=80') center/cover no-repeat;
+  position:relative;
+}
+.game{width:min(100%,480px);margin:auto;position:relative;z-index:1}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;direction:ltr;padding:4px 2px}
+.top-icons{display:flex;align-items:center;gap:14px;font-size:24px;color:#fff}
+.balance{display:flex;align-items:center;gap:9px;background:rgba(0,20,25,.75);border:1px solid #ffffff25;border-radius:24px;padding:6px 12px;font-size:14px;direction:rtl;box-shadow:0 4px 18px rgba(0,0,0,0.6)}
+.balance strong{direction:ltr;display:inline-block;color:#fff;font-size:16.5px}
+.add{display:grid;place-items:center;width:32px;height:32px;border-radius:10px;background:#39bb70;font-size:24px;font-weight:bold;cursor:pointer}
+h1{text-align:center;font-size:18px;font-weight:700;letter-spacing:1.5px;direction:ltr;margin:12px 0 16px;text-shadow:0 2px 8px #001b17;color:#a8f2d1}
+
+.board-wrap{padding:2px 0;background:transparent}
+/* اتجاه شبكة اللعبة محدد LTR من اليسار لليمين */
+.board{display:grid;direction:ltr;grid-template-columns:clamp(50px,16vw,66px) repeat(5,minmax(0,1fr));gap:6px 5px;align-items:center}
+.multiplier{
+  min-height:38px;
+  display:grid;
+  place-items:center;
+  border-radius:11px;
+  background:rgba(0,40,30,.8);
+  color:#9ec2b0;
+  font-size:clamp(10.5px,2.9vw,13px);
+  font-weight:bold;
+  direction:ltr;
+  border:1px solid rgba(135,255,193,.12);
+  backdrop-filter:blur(4px);
+}
+.multiplier.active{
+  background:linear-gradient(135deg,#3ec461,#139a45);
+  color:#ffffff;
+  box-shadow:0 0 14px rgba(49,237,118,0.7);
+  border-color:#7eff9a;
+}
+.apple{
+  width:100%;
+  aspect-ratio:1;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  display:grid;
+  place-items:center;
+  cursor:pointer;
+  position:relative;
+  overflow:visible;
+  transition:transform .15s;
+  padding:0!important;
+}
+.apple img, .apple svg{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  pointer-events:none;
+  filter:drop-shadow(0 4px 6px rgba(0,0,0,0.75));
+}
+.apple:disabled{cursor:default}
+.apple:not(:disabled):active{transform:scale(.92)}
+.apple.script-hint svg, .apple.script-hint img{
+  filter:drop-shadow(0 0 10px #f1c40f) drop-shadow(0 0 16px #f39c12)!important;
+  transform:scale(1.08);
+  animation:pulseHint 1s infinite alternate;
+}
+@keyframes pulseHint{
+  0%{transform:scale(1.04)}
+  100%{transform:scale(1.12)}
+}
+
+.status{min-height:46px;margin:8px 3px;text-align:center;line-height:1.6;font-weight:bold;font-size:14px;color:#d9f5e7;text-shadow:0 2px 6px #001b17}
+.status.win{color:#aaff85}.status.lose{color:#ff9b91}
+.controls{padding:10px;border-radius:18px;background:rgba(0,35,30,.65);border:1px solid rgba(158,255,226,.22);box-shadow:0 8px 28px rgba(0,0,0,0.6);backdrop-filter:blur(10px)}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.quick button{
+  border:1px solid #82c9ff55;
+  border-radius:11px;
+  background:linear-gradient(180deg,#4a9ddd,#2675b9);
+  color:#fff;
+  padding:10px 2px;
+  font-weight:bold;
+  font-size:14px;
+  cursor:pointer;
+}
+.betbox{margin-top:8px;padding:8px 10px;border-radius:14px;background:rgba(20,48,72,.9);border:1px solid #6a9fc355}
+.betrow{display:flex;gap:10px;align-items:center;direction:ltr}
+#bet{
+  width:100%;
+  min-width:0;
+  background:rgba(0,18,28,.85);
+  color:#fff;
+  border:1px solid #91c6dd55;
+  border-radius:11px;
+  padding:10px;
+  font-size:22px;
+  font-weight:bold;
+  text-align:center;
+  direction:ltr;
+  min-height:54px;
+}
+.action{
+  min-width:110px;
+  border:1px solid #ffffff44;
+  border-radius:11px;
+  background:linear-gradient(#59a8e4,#2677bb);
+  color:#fff;
+  padding:10px 8px;
+  font-size:16px;
+  font-weight:bold;
+  min-height:54px;
+  cursor:pointer;
+}
+.action.cash{background:linear-gradient(#ffdc70,#e9a32c);color:#482b08;border-color:#ffe7a0}
+small{display:block;text-align:center;color:#b6cabe;margin-top:6px;font-size:11px}
+.bottom{display:flex;gap:8px;margin-top:10px}
+.bottom button{flex:1;border:1px solid #8bd5ae55;border-radius:11px;background:rgba(4,76,57,.78);color:#e4ffed;padding:10px 4px;font-size:13px;font-weight:600;cursor:pointer}
+
+/* سكريبت ايمكس وتطابق الأعمدة LTR */
+.script-trigger{
+  position:fixed;
+  top:12px;
+  left:12px;
+  background:#6b17c7;
+  color:#fff;
+  border:1.5px solid #bd7aff;
+  border-radius:20px;
+  padding:5px 12px;
+  font-size:11.5px;
+  font-weight:bold;
+  cursor:pointer;
+  z-index:999;
+  box-shadow:0 0 14px rgba(107,23,199,.7);
+  direction:rtl;
+}
+.script-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(3,0,8,.88);
+  backdrop-filter:blur(6px);
+  z-index:1000;
+  display:none;
+  justify-content:center;
+  align-items:center;
+  padding:12px;
+  direction:rtl;
+}
+.app-wrapper{
+  width:100%;
+  max-width:340px;
+  background:#090214;
+  border:2px solid #6b17c7;
+  border-radius:22px;
+  padding:16px 12px;
+  box-shadow:0 0 24px rgba(107,23,199,.6);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+}
+.close-btn{
+  position:absolute;
+  top:10px;
+  left:12px;
+  background:#23083d;
+  border:1px solid #6b17c7;
+  color:#fff;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  font-weight:bold;
+  cursor:pointer;
+}
+.main-title{font-size:20px;font-weight:700;color:#e5b8ff;text-shadow:0 0 10px #9d4edd;margin-bottom:12px;text-align:center}
+#login-view{width:100%;display:flex;flex-direction:column}
+.login-card{width:100%;border:1.5px solid #5513a0;border-radius:15px;padding:16px 12px;background:rgba(14,3,30,.85)}
+.field-group{margin-bottom:12px;display:flex;flex-direction:column}
+.field-label{font-size:12px;color:#fff;margin-bottom:4px;text-align:right}
+.field-input{width:100%;height:40px;background:#0c041c;border:1.5px solid #5a19a8;border-radius:10px;color:#fff;font-size:15px;text-align:center;outline:none}
+.btn-login{width:100%;height:42px;background:#140529;border:1.5px solid #6b17c7;border-radius:10px;color:#fff;font-size:15px;font-weight:600;cursor:pointer;margin-top:6px}
+.err-msg{color:#ff4d6d;font-size:11px;text-align:center;margin-top:5px;min-height:14px}
+#script-game-view{width:100%;display:none;flex-direction:column}
+.status-header{display:flex;gap:6px;width:100%;margin-bottom:8px}
+.info-pill{flex:1;height:30px;display:flex;align-items:center;justify-content:center;background:#0b0217;border:1px solid #5513a0;border-radius:9px;font-size:10.5px;font-weight:600;color:#fff;direction:ltr}
+.board-container{width:100%;border:1.5px solid #5513a0;border-radius:13px;padding:6px;background:#070110}
+.rows-wrapper{display:flex;flex-direction:column-reverse;gap:3px}
+.row-item{display:flex;align-items:center;justify-content:space-between;direction:ltr}
+.cells-group{display:flex;gap:4px;direction:ltr}
+.circle-token{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;box-shadow:inset 0 2px 4px rgba(255,255,255,.3);transition:all .2s ease}
+.token-default{background:repeating-linear-gradient(180deg,#d38a45 0px,#d38a45 5px,#85471d 5px,#85471d 10px);border:1px solid #4a230c}
+.token-green{background:radial-gradient(circle at 35% 35%,#5ff5b4,#00874e);border:1px solid #33d691;box-shadow:0 0 6px rgba(51,214,145,.5)}
+.token-red{background:radial-gradient(circle at 35% 35%,#ff8da6,#b01a3c);border:1px solid #ff4d6d}
+.multiplier-tag{font-size:9.5px;font-weight:bold;color:#fff;display:flex;align-items:center;justify-content:flex-end;gap:2px;min-width:52px;direction:ltr}
+.actions-group{display:flex;gap:8px;width:100%;margin-top:8px}
+.action-btn-sub{flex:1;height:36px;background:#0b0217;border:1.5px solid #5513a0;border-radius:9px;color:#fff;font-size:12.5px;font-weight:700;cursor:pointer}
+.footer-note{margin-top:6px;font-size:10px;color:#9283a8;text-align:center;min-height:20px}
+</style>
+</head>
+<body>
+
+<div class="script-trigger" onclick="openScript()">⚡ اسكربت ايمكس</div>
+
+<div class="script-modal" id="scriptModal">
+ <div class="app-wrapper">
+  <button class="close-btn" onclick="closeScript()">✕</button>
+  
+  <div id="login-view">
+   <div class="main-title">اسكربت ايمكس</div>
+   <div class="login-card">
+    <div class="field-group">
+     <label class="field-label">ID</label>
+     <input type="text" id="idInput" class="field-input" placeholder="أدخل ID حسابك">
+    </div>
+    <div class="field-group">
+     <label class="field-label">كلمة السر</label>
+     <input type="password" id="passInput" class="field-input" placeholder="••••••••">
+    </div>
+    <button class="btn-login" onclick="authenticate()">دخول</button>
+    <div class="err-msg" id="loginErr"></div>
+   </div>
+   <small style="margin-top:10px;color:#9283a8">صنع بواسطة MOHAMED ALAA</small>
+  </div>
+
+  <div id="script-game-view">
+   <div class="main-title">اسكربت ايمكس</div>
+   <div class="status-header">
+    <div class="info-pill" id="usersLabel">Online Users: 204</div>
+    <div class="info-pill" id="idLabel">Your ID: 1263586555</div>
+   </div>
+   <div class="board-container">
+    <div class="rows-wrapper" id="boardRows"></div>
+   </div>
+   <div class="actions-group">
+    <button class="action-btn-sub" id="startBtn" onclick="runScriptPredict()">START</button>
+    <button class="action-btn-sub" onclick="resetScriptBoard()">RESET</button>
+   </div>
+   <div class="footer-note" id="statusNote">جاهز للتحليل وربط التوقعات باللعبة</div>
+  </div>
+ </div>
+</div>
+
+<main class="game">
+ <div class="top">
+  <div class="top-icons"><span>ⓘ</span><span>✹</span></div>
+  <div class="balance"><span class="add" onclick="addBalance()">+</span><strong id="balance">1,000.00</strong> ج.م</div>
+  <div class="top-icons"><span>›</span></div>
+ </div>
+ <h1>APPLE OF FORTUNE</h1>
+ <section class="board-wrap"><div class="board" id="board"></div></section>
+ <div class="status" id="status" aria-live="polite">اختار مبلغ الرهان واضغط «الرهان» لبدء اللعب</div>
+ <section class="controls">
+  <div class="quick">
+   <button onclick="setBet('max')">أقصى</button>
+   <button onclick="setBet('half')">× ½</button>
+   <button onclick="setBet('double')">× 2</button>
+   <button onclick="setBet('min')">أدنى</button>
+  </div>
+  <div class="betbox">
+   <div class="betrow">
+    <button class="action" id="play" onclick="playGame()">الرهان</button>
+    <input id="bet" type="number" min="10" max="72117.63" step="0.01" value="20" inputmode="decimal">
+   </div>
+   <small>أدنى 10 ج.م — أقصى 72,117.63 ج.م</small>
+  </div>
+  <div class="bottom">
+   <button onclick="newGame()">🔄 جولة جديدة</button>
+   <button onclick="showRules()">⚙️ طريقة اللعب</button>
+  </div>
+ </section>
+ <small>نسخة تجريبية — الرصيد والأرباح افتراضية</small>
+</main>
+
+<script>
+const ROWS=10,COLS=5,MIN_BET=10,MAX_BET=72117.63;
+const MULT=[1.23,1.54,1.93,2.41,4.02,6.71,11.18,27.97,69.93,349.68];
+let balance=1000,bet=20,playing=false,currentRow=9,steps=0,safe=[],picked=[],revealAll=false;
+const board=document.getElementById('board');
+
+// صور الأطباق الخشبية والتفاح الأصلية فائقة النقاء
+const ASSETS = {
+  wood: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#84411b" stroke="#3b1706" stroke-width="3"/><circle cx="50" cy="50" r="42" fill="#be642b"/><path d="M12 36 Q50 28 88 36" stroke="#944517" stroke-width="2.5" fill="none"/><path d="M10 52 Q50 44 90 52" stroke="#712e09" stroke-width="3" fill="none"/><path d="M14 68 Q50 60 86 68" stroke="#541f04" stroke-width="2.5" fill="none"/><circle cx="50" cy="50" r="42" fill="url(#pShd)"/><defs><radialGradient id="pShd" cx="35%" cy="25%" r="70%"><stop offset="0%" stop-color="rgba(255,255,255,0.25)"/><stop offset="60%" stop-color="transparent"/><stop offset="100%" stop-color="rgba(0,0,0,0.6)"/></radialGradient></defs></svg>`,
+  
+  mushroom: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" fill="#84411b" stroke="#3b1706" stroke-width="3"/><circle cx="50" cy="50" r="42" fill="#be642b"/><path d="M12 38 Q50 30 88 38" stroke="#944517" stroke-width="2" fill="none"/><path d="M14 64 Q50 56 86 64" stroke="#541f04" stroke-width="2" fill="none"/><path d="M50 16 C33 16 21 27 21 41 C21 53 30 61 34 64 L36 82 C36 85 64 85 64 82 L66 64 C70 61 79 53 79 41 C79 27 67 16 50 16 Z" fill="url(#dWood)" stroke="#431401" stroke-width="2.5"/><path d="M39 19 C32 30 33 53 36 81" stroke="#7c2e04" stroke-width="2" fill="none"/><path d="M61 19 C68 30 67 53 64 81" stroke="#7c2e04" stroke-width="2" fill="none"/><path d="M50 16 L50 82" stroke="#ff9b49" stroke-width="1.8" fill="none"/><path d="M33 24 Q50 18 67 24" stroke="rgba(255,255,255,0.4)" stroke-width="2.5" stroke-linecap="round" fill="none"/><path d="M33 65 Q50 71 67 66" stroke="#0a443d" stroke-width="6.5" fill="none" stroke-linecap="round"/><path d="M33 64 Q50 70 67 65" stroke="#25dfcf" stroke-width="4.5" fill="none" stroke-linecap="round"/><path d="M36 63.5 Q50 69.5 64 64.5" stroke="#b2fff7" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M34 73 Q50 79 66 74" stroke="#0a443d" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M34 72 Q50 78 66 73" stroke="#25dfcf" stroke-width="4.5" fill="none" stroke-linecap="round"/><defs><radialGradient id="dWood" cx="45%" cy="30%" r="70%"><stop offset="0%" stop-color="#fda953"/><stop offset="55%" stop-color="#df6714"/><stop offset="100%" stop-color="#7c2700"/></radialGradient></defs></svg>`,
+  
+  safe: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#094423" stroke="#042613" stroke-width="2.5"/><circle cx="50" cy="50" r="44" fill="url(#gPWood)"/><circle cx="50" cy="50" r="44" fill="none" stroke="#25b35d" stroke-width="2.5" opacity="0.85"/><path d="M12 35 Q50 31 88 35" stroke="#0e562f" stroke-width="2" fill="none"/><path d="M8 50 Q50 46 92 50" stroke="#093f22" stroke-width="2" fill="none"/><path d="M12 65 Q50 61 88 65" stroke="#063019" stroke-width="2" fill="none"/><g transform="translate(18, 14) scale(0.64)"><path d="M50 24 C46 10 56 4 64 5" stroke="#4a2c11" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M48 18 C36 10 24 16 28 28 C34 34 46 26 48 18 Z" fill="#6bc934" stroke="#2d6e0e" stroke-width="2"/><path d="M36 21 Q42 21 44 19" stroke="#9ff06a" stroke-width="1.5" fill="none"/><path d="M50 28 C32 14 8 26 8 56 C8 84 32 98 50 98 C68 98 92 84 92 56 C92 26 68 14 50 28 Z" fill="url(#rApple)" filter="drop-shadow(0 5px 6px rgba(0,0,0,0.65))"/><path d="M64 40 C74 46 76 64 68 76" stroke="rgba(255,255,255,0.65)" stroke-width="5.5" stroke-linecap="round" fill="none"/><circle cx="58" cy="40" r="4.5" fill="rgba(255,255,255,0.5)"/></g><defs><radialGradient id="gPWood" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#24a355"/><stop offset="60%" stop-color="#146d37"/><stop offset="100%" stop-color="#08381c"/></radialGradient><radialGradient id="rApple" cx="42%" cy="45%" r="58%"><stop offset="0%" stop-color="#ff3b4e"/><stop offset="45%" stop-color="#d80a22"/><stop offset="85%" stop-color="#80020f"/><stop offset="100%" stop-color="#4a0007"/></radialGradient></defs></svg>`,
+  
+  bad: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="48" fill="#460d0a" stroke="#260604" stroke-width="2.5"/><circle cx="50" cy="50" r="44" fill="url(#rPWood)"/><circle cx="50" cy="50" r="44" fill="none" stroke="#ba3228" stroke-width="2.5" opacity="0.85"/><path d="M12 35 Q50 31 88 35" stroke="#54120e" stroke-width="2" fill="none"/><path d="M8 50 Q50 46 92 50" stroke="#400b08" stroke-width="2" fill="none"/><path d="M12 65 Q50 61 88 65" stroke="#2c0604" stroke-width="2" fill="none"/><g transform="translate(20, 15) scale(0.6)"><path d="M50 18 C46 8 54 4 60 5" stroke="#4a2c11" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M26 25 C34 20 46 26 50 27 C54 26 66 20 74 25 C78 28 80 34 76 38 C70 34 60 37 50 35 C40 37 30 34 24 38 C20 34 22 28 26 25 Z" fill="#b8091a" filter="drop-shadow(0 2px 3px rgba(0,0,0,0.5))"/><path d="M30 25 Q50 20 70 25" stroke="rgba(255,255,255,0.4)" stroke-width="2" fill="none"/><path d="M27 34 C36 34 38 46 36 54 C34 64 38 72 26 80 C36 86 64 86 74 80 C62 72 66 64 64 54 C62 46 64 34 73 34 C63 38 37 38 27 34 Z" fill="url(#coreG)" stroke="#c49e70" stroke-width="1.8"/><ellipse cx="46" cy="52" rx="3" ry="5" fill="#3a1b05" transform="rotate(-15 46 52)"/><ellipse cx="54" cy="62" rx="3" ry="5" fill="#3a1b05" transform="rotate(15 54 62)"/><path d="M26 80 C34 88 66 88 74 80 C78 86 66 94 50 94 C34 94 22 86 26 80 Z" fill="#9e0615"/></g><defs><radialGradient id="rPWood" cx="40%" cy="30%" r="70%"><stop offset="0%" stop-color="#9a2019"/><stop offset="60%" stop-color="#67110a"/><stop offset="100%" stop-color="#340502"/></radialGradient><linearGradient id="coreG" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#fdf4e4"/><stop offset="50%" stop-color="#fae7cb"/><stop offset="100%" stop-color="#f0ce9c"/></linearGradient></defs></svg>`
+};
+
+function createRound(){
+ const safeCounts=[1,2,2,3,3,3,4,4,4,4];
+ safe= safeCounts.map(count=>{
+   const cols=[0,1,2,3,4];
+   for(let i=cols.length-1;i>0;i--){
+     const j=Math.floor(Math.random()*(i+1));
+     [cols[i],cols[j]]=[cols[j],cols[i]];
+   }
+   return new Set(cols.slice(0,count));
+ });
+ picked=Array.from({length:ROWS},()=>null);
+ currentRow=ROWS-1;steps=0;playing=false;revealAll=false;
+ render();update();
+}
+
+function render(){
+ board.innerHTML='';
+ for(let r=0;r<ROWS;r++){
+  const label=document.createElement('div');
+  label.className='multiplier'+(playing&&r===currentRow?' active':'');
+  label.textContent='×'+MULT[ROWS-1-r].toFixed(2);
+  board.appendChild(label);
+  for(let c=0;c<COLS;c++){
+   const b=document.createElement('button');
+   b.className='apple'; b.type='button';
+   b.id=`cell-${r}-${c}`;
+   let sprite='wood';
+   if(revealAll) sprite=safe[r].has(c)?'safe':'bad';
+   else if(picked[r]!==null && c===picked[r]) sprite=safe[r].has(c)?'safe':'bad';
+   else if(playing && r===currentRow) sprite='mushroom';
+   else if(!playing && r===ROWS-1) sprite='mushroom';
+   b.innerHTML=ASSETS[sprite];
+   b.disabled=!playing||r!==currentRow||picked[r]!==null||revealAll;
+   b.onclick=()=>chooseApple(r,c);
+   board.appendChild(b);
+  }
+ }
+}
+
+function setBet(mode){
+ let v=Number(document.getElementById('bet').value)||MIN_BET;
+ if(mode==='min')v=MIN_BET;
+ if(mode==='max')v=Math.min(MAX_BET,balance);
+ if(mode==='half')v=Math.max(MIN_BET,v/2);
+ if(mode==='double')v=Math.min(balance,MAX_BET,v*2);
+ document.getElementById('bet').value=Math.min(balance,Math.max(MIN_BET,v)).toFixed(2);
+}
+
+function playGame(){
+ if(playing){cashOut();return}
+ bet=Number(document.getElementById('bet').value);
+ if(!Number.isFinite(bet)||bet<MIN_BET||bet>MAX_BET||bet>balance){message('راجع مبلغ الرهان والرصيد المتاح','');return}
+ balance-=bet;playing=true;currentRow=ROWS-1;steps=0;
+ message('اختار تفاحة واحدة من الصف المضيء. لو سليمة هتنتقل تلقائياً للصف اللي فوق','');
+ render();update();
+}
+
+function chooseApple(r,c){
+ if(!playing||r!==currentRow||picked[r]!==null)return;
+ picked[r]=c;
+ if(safe[r].has(c)){
+  steps++;
+  if(steps===ROWS){
+   const prize=bet*MULT[ROWS-1];balance+=prize;playing=false;revealAll=true;
+   render();update();message('🎉 مبروك! أنت كسبت '+prize.toFixed(2)+' ج.م','win');
+   return;
+  }
+  currentRow--;
+  render();update();
+  message('✅ التفاحة سليمة! اختار تفاحة واحدة من الصف اللي بعده','');
+ }else{
+  playing=false;revealAll=true;
+  render();update();
+  message('❌ أنت خسرت! التفاحة دي خطرة. هنبدأ جولة جديدة من الأول','lose');
+ }
+}
+
+function cashOut(){
+ if(steps===0){message('اكشف تفاحة سليمة واحدة على الأقل قبل تحصيل الأرباح','');return}
+ const prize=bet*MULT[steps-1];balance+=prize;playing=false;revealAll=true;
+ render();update();message('🏆 أنت كسبت! تم إضافة '+prize.toFixed(2)+' ج.م إلى رصيدك','win');
+}
+
+function update(){
+ document.getElementById('balance').textContent=balance.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+ const p=document.getElementById('play');p.textContent=playing?'خذ الأرباح':'الرهان';p.classList.toggle('cash',playing);
+ document.getElementById('bet').disabled=playing;
+}
+
+function message(t,type){const s=document.getElementById('status');s.textContent=t;s.className='status'+(type?' '+type:'')}
+
+function newGame(){
+ if(playing){message('أنهِ الجولة الحالية أولاً أو اضغط «خذ الأرباح»','');return}
+ createRound();message('جولة جديدة — حدد الرهان واضغط «الرهان»','');
+}
+
+function showRules(){alert('ابدأ الرهان، ثم اختار تفاحة واحدة فقط في الصف المضيء. إذا كانت سليمة تنتقل للصف التالي. إذا كانت خطرة تخسر الجولة وتبدأ جولة جديدة. يمكنك أخذ الأرباح بعد أي تفاحة سليمة.')}
+
+function addBalance(){balance+=500;update();}
+
+/* ================= كود اسكربت ايمكس المتطابق تماماً ================= */
+let animTimer=null,liveTimer=null;
+
+function openScript(){document.getElementById('scriptModal').style.display='flex'}
+function closeScript(){document.getElementById('scriptModal').style.display='none'}
+
+function getOnlineUsers(){let s=localStorage.getItem('online_users_count');return s?parseInt(s,10):204}
+function setOnlineUsers(v){localStorage.setItem('online_users_count',v);const el=document.getElementById('usersLabel');if(el)el.textContent='Online Users: '+v}
+
+function startLiveFluctuation(){
+ if(liveTimer)clearInterval(liveTimer);
+ liveTimer=setInterval(()=>{
+  let u=getOnlineUsers()+Math.floor(Math.random()*5)-2;
+  if(u<180)u=200;setOnlineUsers(u);
+ },6000);
+}
+
+function authenticate(){
+ const id=document.getElementById('idInput').value.trim();
+ const pass=document.getElementById('passInput').value.trim().toLowerCase();
+ const err=document.getElementById('loginErr');
+ if(!id){err.textContent="يرجى كتابة الـ ID أولاً";return}
+ if(pass!=="ايمكس"&&pass!=="imx"&&pass!=="emx"){err.textContent="كلمة السر غير صحيحة";return}
+ setOnlineUsers(getOnlineUsers()+Math.floor(Math.random()*11)+10);
+ document.getElementById('idLabel').textContent='Your ID: '+id;
+ document.getElementById('login-view').style.display='none';
+ document.getElementById('script-game-view').style.display='flex';
+ resetScriptBoard();
+ startLiveFluctuation();
+}
+
+function buildScriptBoard(){
+ const b=document.getElementById('boardRows');b.innerHTML='';
+ for(let r=0;r<ROWS;r++){
+  const row=document.createElement('div');row.className='row-item';
+  const cells=document.createElement('div');cells.className='cells-group';
+  for(let c=0;c<COLS;c++){
+   const t=document.createElement('div');t.id=`token-${r}-${c}`;t.className='circle-token token-default';
+   cells.appendChild(t);
+  }
+  const tag=document.createElement('div');tag.className='multiplier-tag';
+  tag.innerHTML=`×${MULT[r].toFixed(2)} <span style="color:#e63956">✿</span>`;
+  row.appendChild(cells);row.appendChild(tag);
+  b.appendChild(row);
+ }
+}
+
+function resetScriptBoard(){
+ if(animTimer)clearInterval(animTimer);
+ buildScriptBoard();
+ document.getElementById('statusNote').innerHTML='تمت إعادة تفاحات السكريبت لوضع الإغلاق';
+ document.getElementById('startBtn').disabled=false;
+ document.querySelectorAll('.apple').forEach(a=>a.classList.remove('script-hint'));
+}
+
+function runScriptPredict(){
+ if(!playing){
+  document.getElementById('statusNote').innerHTML='⚠️ اضغط على زر "الرهان" في اللعبة أولاً!';
+  return;
+ }
+ resetScriptBoard();
+ document.getElementById('startBtn').disabled=true;
+ document.getElementById('statusNote').innerHTML='جار التحليل وعرض التفاح الآمن...';
+
+ let currentStep=0;
+ animTimer=setInterval(()=>{
+  if(currentStep>=ROWS){
+   clearInterval(animTimer);
+   document.getElementById('statusNote').innerHTML='⚡ تم كشف التفاحات بنجاح وتمييزها بهالة ذهبية!';
+   document.getElementById('startBtn').disabled=false;
+   return;
+  }
+  
+  const actualGameRow = ROWS - 1 - currentStep;
+  for(let c=0;c<COLS;c++){
+   const token=document.getElementById(`token-${currentStep}-${c}`);
+   const isSafe=safe[actualGameRow].has(c);
+   if(token){
+    token.className='circle-token '+(isSafe?'token-green':'token-red');
+    token.innerHTML=isSafe?'🍏':'🍎';
+   }
+   if(isSafe && actualGameRow===currentRow){
+    const gCell=document.getElementById(`cell-${actualGameRow}-${c}`);
+    if(gCell) gCell.classList.add('script-hint');
+   }
+  }
+  currentStep++;
+ },350);
+}
+
+createRound();
+buildScriptBoard();
+</script>
+</body>
+</html>
